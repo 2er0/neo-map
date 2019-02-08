@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<title>Neo – Ergonomisches Tastaturlayout – Karte</title>
+	<link rel="shortcut icon" href="./favicon.ico" />
+
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" />
+</head>
+<body>
+	<div class="container">
+
+		<header class="page-header">
+			<h1 class="clearfix text-hide" style="background:url(./neo_kopf_trac_522x50.png) no-repeat; height:50px;">
+				Neo – Ergonomisches Tastaturlayout
+			</h1>
+		</header>
+
+		<ol class="breadcrumb clearfix">
+			<li>
+				<a href="/"><i class="glyphicon glyphicon-home"></i> Neo-layout.org</a>
+			</li>
+			<li class="active"><a href="#">Karte</a></li>
+		</ol>
+
+		<div class="embed-responsive embed-responsive-16by9">
+			<div id="map" class="embed-responsive-item"></div>
+		</div>
+
+		<p>
+			Möchtest du auch eingetragen werden?
+			Melde dich einfach im <a href="//webchat.freenode.net/?channels=neo">#neo IRC</a> bei knittl oder xeno|stefan.
+		</p>
+	</div>
+
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.4.0/dist/leaflet.css" integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA==" crossorigin=""/>
+	<script src="https://unpkg.com/leaflet@1.4.0/dist/leaflet.js" integrity="sha512-QVftwZFqvtRNi0ZyCtsznlKSWOStnDORoefr1enyq5mVL4tmKB3S/EnC3rRJcxCPavG10IcrVGSmPh6Qw5lwrg==" crossorigin=""></script>
+
+
+	<script src="leaflet-heat.js"></script>
+
+	<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+	<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+	<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+	<script>
+	var tiles = L.tileLayer(
+		'//{s}.tile.osm.org/{z}/{x}/{y}.png',
+		{
+			attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+		}
+	);
+
+	var markers = L.markerClusterGroup();
+
+	var heat = L.heatLayer([],
+		{
+			radius: 100,
+			blur: 25,
+			//maxZoom: 12,
+			//max: 0.05,
+			minOpacity: 0.125
+		}
+	);
+
+	var map = L.map('map', { layers: [ tiles, markers, heat ] });
+
+	var overlays = {
+		'Markers': markers,
+		'Heatmap': heat
+	};
+
+	L.control.layers(null, overlays).addTo(map);
+
+	function makeMarker(coord) {
+		var marker = L.marker(coord);
+
+		markers.addLayer(marker);
+		return marker;
+	}
+
+	function dms_to_degrees(dms) {
+		dms = dms.split(/ +/);
+
+		return +dms[0] + +(dms[1]|0)/60 + +(dms[2]|0)/360;
+	}
+
+	function p(x, y, nick) {
+		// assume NaN values are Degrees/Minutes/Seconds
+		if(isNaN(x)) { x = dms_to_degrees(x); }
+		if(isNaN(y)) { y = dms_to_degrees(y); }
+
+		return [ L.latLng(x, y), nick ];
+	}
+
+	var ppl = [
+		p( 51.2,	6.4,	'' ),
+		p( 51.2,	6.4,	'' ),
+		p( 48.4,	14.5,	'' ),
+		p( 48.4,	14.5,	'' ),
+		p( 52.4,	9.7,	'' )
+	];
+
+	function round(x, precision) {
+		return Math.round(x*precision)/precision;
+	}
+
+	//// round/anonymize coordinates
+	//ppl = ppl.map(function(item) {
+	//	return [
+	//		[ round(item[0][0], 10), round(item[0][1], 10) ],
+	//		item[1]
+	//	];
+	//});
+
+	var nickCoords = ppl.map(function(item) { return item[0] });
+
+	nickCoords.forEach(makeMarker);
+
+	heat.setLatLngs(nickCoords);
+
+	var bounds = markers.getBounds();
+	map.fitBounds(bounds, { padding: [ 55, 55 ] });
+
+	</script>
+</body>
+</html>
+
